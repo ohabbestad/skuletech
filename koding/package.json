@@ -1,0 +1,16 @@
+{
+  "name": "koding",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tailwindcss -i css/input.css -o css/tailwind.css --minify",
+    "watch": "tailwindcss -i css/input.css -o css/tailwind.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^4.2.1"
+  }
+}
