@@ -38,20 +38,23 @@
         </p>
       </div>
 
-      <!-- Velkomstvideo -->
+      <!-- Velkomstvideo (YouTube) -->
       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="bg-indigo-50 px-6 py-3 border-b border-gray-100 flex items-center gap-2">
           <span class="text-indigo-600">▶</span>
           <span class="font-medium text-gray-700">Sjå velkomstvideoen</span>
         </div>
-        <video
-          class="w-full block bg-black"
-          controls
-          preload="metadata"
-          poster="">
-          <source src="videoar/Velkomstvideo - Programmering i matematikk.mp4" type="video/mp4" />
-          Nettlesaren din støttar ikkje videoavspeling.
-        </video>
+        <!-- Byt ut DIN_VIDEO_ID med YouTube-ID-en din (t.d. dQw4w9WgXcQ) -->
+        <div class="relative w-full" style="padding-bottom: 56.25%;">
+          <iframe
+            class="absolute inset-0 w-full h-full"
+            src="https://www.youtube.com/embed/DIN_VIDEO_ID"
+            title="Velkomstvideo — Programmering i matematikk"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
+        </div>
       </div>
 
       <!-- Slik fungerer kurset -->

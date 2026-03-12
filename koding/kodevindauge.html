@@ -203,7 +203,7 @@
         // Funksjon for å skrive ut tekst til resultat-feltet
         function utskrift(tekst) {
             var resultatFelt = document.getElementById("resultat");
-            resultatFelt.innerHTML = resultatFelt.innerHTML + tekst;
+            resultatFelt.textContent = resultatFelt.textContent + tekst;
             
             // Autoskroll til botnen slik at nyaste utskrift alltid viser
             var outputPane = document.querySelector('.output-pane');
@@ -248,8 +248,8 @@
             knapp.classList.add("stop-state");
             
             // Tømmer resultatfeltet før kvar nye køyring
-            resultatFelt.innerHTML = '';
-            resultatFelt.className = ''; 
+            resultatFelt.textContent = '';
+            resultatFelt.className = '';
 
             // Set opp Skulpt
             Sk.pre = "resultat";
@@ -290,10 +290,10 @@
                 
                 if (feilmelding.indexOf("TimeLimitError") !== -1) {
                     if (stoppaAvBrukar) {
-                        resultatFelt.innerHTML += "\n\n[Køyringa vart avbroten av deg.]";
+                        resultatFelt.textContent += "\n\n[Køyringa vart avbroten av deg.]";
                         resultatFelt.className = 'error-msg';
                     } else {
-                        resultatFelt.innerHTML += "\n\n[Feil: Koden brukte for lang tid. Har du laga ei uendeleg løkke?]";
+                        resultatFelt.textContent += "\n\n[Feil: Koden brukte for lang tid. Har du laga ei uendeleg løkke?]";
                         resultatFelt.className = 'error-msg';
                     }
                 } else {
@@ -302,8 +302,8 @@
                     feilmelding = feilmelding.replace("NameError: name", "Namnefeil: Datamaskina kjenner ikkje att ordet");
                     feilmelding = feilmelding.replace("is not defined", "er ikkje definert (har du hugsa hermeteikn?)");
                     feilmelding = feilmelding.replace("on line", "på linje");
-                    
-                    resultatFelt.innerHTML = feilmelding;
+
+                    resultatFelt.textContent = feilmelding;
                     resultatFelt.className = 'error-msg';
                 }
             }
@@ -313,13 +313,19 @@
             outputPane.scrollTop = outputPane.scrollHeight;
         }
         
+        // Dekoder base64 med støtte for UTF-8 (æ, ø, å)
+        function b64Decode(str) {
+            var bytes = Uint8Array.from(atob(str), c => c.charCodeAt(0));
+            return new TextDecoder().decode(bytes);
+        }
+
         // Les tilpassa startkode frå URL-parameter ?kode=BASE64
         (function() {
             var params = new URLSearchParams(window.location.search);
             var kodeParam = params.get('kode');
             if (kodeParam) {
                 try {
-                    var dekodet = atob(kodeParam);
+                    var dekodet = b64Decode(kodeParam);
                     editor.setValue(dekodet);
                 } catch (e) { /* Ignorer feil, behold standardkode */ }
             }
