@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Koderom – Programmering i matematikk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/nav.js"></script>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { display: flex; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; }
+    main { flex: 1; display: flex; flex-direction: column; }
+    #kodevindauge-frame { flex: 1; border: none; min-height: 500px; }
+  </style>
+</head>
+<body>
+  <!-- Nav blir injisert av nav.js -->
+
+  <main>
+    <div class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+      <div>
+        <h1 class="font-bold text-gray-800 text-base sm:text-lg">💻 Koderom</h1>
+        <p class="text-xs text-gray-500">Her kan du kode fritt i Python</p>
+      </div>
+      <button
+        onclick="tilbakestill()"
+        class="text-xs text-gray-500 hover:text-red-500 border border-gray-200 hover:border-red-300 px-3 py-1 rounded-lg transition">
+        Tøm koden
+      </button>
+    </div>
+
+    <iframe
+      id="kodevindauge-frame"
+      src="kodevindauge.html?kode=IyBIZXIga2FuIGR1IGtvZGUgZnJpdHQgaSBQeXRob24K"
+      title="Python kodevindauge"
+    ></iframe>
+  </main>
+
+  <script>
+    function tilbakestill() {
+      var frame = document.getElementById('kodevindauge-frame');
+      // Last iframe på nytt med tom kode
+      frame.src = frame.src;
+    }
+  </script>
+</body>
+</html>
