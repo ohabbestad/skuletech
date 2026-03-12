@@ -179,6 +179,22 @@
         .error-msg {
             color: #ef4444;
         }
+
+        /* Inline inputfelt for input() */
+        #resultat .inline-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #64748b;
+            outline: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            color: #0f172a;
+            min-width: 120px;
+            width: 40%;
+            padding: 0;
+            caret-color: #10b981;
+            vertical-align: baseline;
+        }
     </style>
 </head>
 <body>
@@ -236,10 +252,38 @@ print("Kvadratet er ferdig teikna!")
 
         function utskrift(tekst) {
             var resultatFelt = document.getElementById("resultat");
-            resultatFelt.textContent = resultatFelt.textContent + tekst;
-            
+            resultatFelt.appendChild(document.createTextNode(tekst));
             var outputPane = document.querySelector('.output-pane');
             outputPane.scrollTop = outputPane.scrollHeight;
+        }
+
+        function inputFun(prompt) {
+            return new Promise(function(resolve) {
+                var resultatFelt = document.getElementById("resultat");
+                var outputPane = document.querySelector('.output-pane');
+
+                if (prompt) {
+                    resultatFelt.appendChild(document.createTextNode(prompt));
+                }
+
+                var inp = document.createElement('input');
+                inp.type = 'text';
+                inp.className = 'inline-input';
+                resultatFelt.appendChild(inp);
+                outputPane.scrollTop = outputPane.scrollHeight;
+
+                setTimeout(function() { inp.focus(); }, 0);
+
+                inp.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        var svar = inp.value;
+                        inp.remove();
+                        resultatFelt.appendChild(document.createTextNode(svar + '\n'));
+                        outputPane.scrollTop = outputPane.scrollHeight;
+                        resolve(svar);
+                    }
+                });
+            });
         }
 
         function lesFiler(x) {
@@ -272,8 +316,7 @@ print("Kvadratet er ferdig teikna!")
             knapp.innerHTML = "⏹ Stopp koden";
             knapp.classList.add("stop-state");
             
-            resultatFelt.textContent = '';
-            resultatFelt.className = '';
+            while (resultatFelt.firstChild) resultatFelt.removeChild(resultatFelt.firstChild);
 
             // 1. Tving wrapperen synleg FØR vi gjer noko anna
             wrapper.style.display = 'block';
@@ -296,9 +339,11 @@ print("Kvadratet er ferdig teikna!")
             Sk.configure({
                 output: utskrift,
                 read: lesFiler,
+                inputfun: inputFun,
+                inputfunTakesPrompt: true,
                 __future__: Sk.python3,
                 yieldLimit: 100,
-                execLimit: 30000
+                execLimit: 120000
             });
             
             // Overstyr TurtleGraphics fullstendig slik at ingen gamle innstillingar heng att
@@ -337,23 +382,24 @@ print("Kvadratet er ferdig teikna!")
             if (err) {
                 var feilmelding = err.toString();
                 
+                var feilSpan = document.createElement('span');
+                feilSpan.className = 'error-msg';
+
                 if (feilmelding.indexOf("TimeLimitError") !== -1) {
                     if (stoppaAvBrukar) {
-                        resultatFelt.textContent += "\n\n[Køyringa vart avbroten av deg.]";
-                        resultatFelt.className = 'error-msg';
+                        feilSpan.appendChild(document.createTextNode('\n\n[Køyringa vart avbroten av deg.]'));
                     } else {
-                        resultatFelt.textContent += "\n\n[Feil: Koden brukte for lang tid. Har du laga ei uendeleg løkke?]";
-                        resultatFelt.className = 'error-msg';
+                        feilSpan.appendChild(document.createTextNode('\n\n[Feil: Koden brukte for lang tid. Har du laga ei uendeleg løkke?]'));
                     }
                 } else {
                     feilmelding = feilmelding.replace("ParseError: bad input", "Skrivefeil: Noko er skrive feil");
                     feilmelding = feilmelding.replace("NameError: name", "Namnefeil: Datamaskina kjenner ikkje att ordet");
                     feilmelding = feilmelding.replace("is not defined", "er ikkje definert (har du hugsa hermeteikn?)");
                     feilmelding = feilmelding.replace("on line", "på linje");
-
-                    resultatFelt.textContent = feilmelding;
-                    resultatFelt.className = 'error-msg';
+                    while (resultatFelt.firstChild) resultatFelt.removeChild(resultatFelt.firstChild);
+                    feilSpan.appendChild(document.createTextNode(feilmelding));
                 }
+                resultatFelt.appendChild(feilSpan);
             }
             
             var outputPane = document.querySelector('.output-pane');

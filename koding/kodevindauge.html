@@ -159,10 +159,26 @@
             margin: 0;
             min-height: 40px;
         }
-        
+
         /* Gjer feilmeldingar raude og lettare å forstå */
         .error-msg {
             color: #ef4444;
+        }
+
+        /* Inline inputfelt for input() */
+        #resultat .inline-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #64748b;
+            outline: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            color: #0f172a;
+            min-width: 120px;
+            width: 40%;
+            padding: 0;
+            caret-color: #10b981;
+            vertical-align: baseline;
         }
     </style>
 </head>
@@ -201,13 +217,46 @@
         });
 
         // Funksjon for å skrive ut tekst til resultat-feltet
+        // Brukar tekstnoder (ikkje textContent) slik at vi kan blande tekst og inputfelt
         function utskrift(tekst) {
             var resultatFelt = document.getElementById("resultat");
-            resultatFelt.textContent = resultatFelt.textContent + tekst;
-            
-            // Autoskroll til botnen slik at nyaste utskrift alltid viser
+            resultatFelt.appendChild(document.createTextNode(tekst));
             var outputPane = document.querySelector('.output-pane');
             outputPane.scrollTop = outputPane.scrollHeight;
+        }
+
+        // Inline input() — skriv spørsmål til skjermen og ventar på svar i feltet
+        function inputFun(prompt) {
+            return new Promise(function(resolve) {
+                var resultatFelt = document.getElementById("resultat");
+                var outputPane = document.querySelector('.output-pane');
+
+                // Skriv spørsmålsteksten til outputfeltet
+                if (prompt) {
+                    resultatFelt.appendChild(document.createTextNode(prompt));
+                }
+
+                // Lag eit inline inputfelt
+                var inp = document.createElement('input');
+                inp.type = 'text';
+                inp.className = 'inline-input';
+                resultatFelt.appendChild(inp);
+                outputPane.scrollTop = outputPane.scrollHeight;
+
+                // Fokuser automatisk så eleven slepp å klikke
+                setTimeout(function() { inp.focus(); }, 0);
+
+                inp.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        var svar = inp.value;
+                        inp.remove();
+                        // Echo svaret + linjeskift slik det ser ut i ein terminal
+                        resultatFelt.appendChild(document.createTextNode(svar + '\n'));
+                        outputPane.scrollTop = outputPane.scrollHeight;
+                        resolve(svar);
+                    }
+                });
+            });
         }
 
         // Standardfunksjon Skulpt treng for å lese innebygde modular
@@ -248,17 +297,18 @@
             knapp.classList.add("stop-state");
             
             // Tømmer resultatfeltet før kvar nye køyring
-            resultatFelt.textContent = '';
-            resultatFelt.className = '';
+            while (resultatFelt.firstChild) resultatFelt.removeChild(resultatFelt.firstChild);
 
             // Set opp Skulpt
             Sk.pre = "resultat";
             Sk.configure({
                 output: utskrift,
                 read: lesFiler,
-                __future__: Sk.python3, // Bruk Python 3 standard
-                yieldLimit: 100,        // MÅ VERE MED! Gjer at nettlesaren ikkje frys, og let oss trykkje Stopp
-                execLimit: 30000        // Maks 30 sekund normal køyring, som vern mot lange køyringar
+                inputfun: inputFun,          // Inline input() — ingen dialogboks
+                inputfunTakesPrompt: true,   // inputFun handterer prompten sjølv
+                __future__: Sk.python3,      // Bruk Python 3 standard
+                yieldLimit: 100,             // MÅ VERE MED! Gjer at nettlesaren ikkje frys
+                execLimit: 120000             // Maks 120 sekund normal køyring
             });
 
             // Gjer koden om til noko nettlesaren kan forstå og køyre
@@ -287,14 +337,14 @@
             // Viss det skjedde ein feil eller brukaren trykte stopp
             if (err) {
                 var feilmelding = err.toString();
-                
+                var feilSpan = document.createElement('span');
+                feilSpan.className = 'error-msg';
+
                 if (feilmelding.indexOf("TimeLimitError") !== -1) {
                     if (stoppaAvBrukar) {
-                        resultatFelt.textContent += "\n\n[Køyringa vart avbroten av deg.]";
-                        resultatFelt.className = 'error-msg';
+                        feilSpan.appendChild(document.createTextNode('\n\n[Køyringa vart avbroten av deg.]'));
                     } else {
-                        resultatFelt.textContent += "\n\n[Feil: Koden brukte for lang tid. Har du laga ei uendeleg løkke?]";
-                        resultatFelt.className = 'error-msg';
+                        feilSpan.appendChild(document.createTextNode('\n\n[Feil: Koden brukte for lang tid. Har du laga ei uendeleg løkke?]'));
                     }
                 } else {
                     // Omset vanlege feilmeldingar til norsk
@@ -302,10 +352,11 @@
                     feilmelding = feilmelding.replace("NameError: name", "Namnefeil: Datamaskina kjenner ikkje att ordet");
                     feilmelding = feilmelding.replace("is not defined", "er ikkje definert (har du hugsa hermeteikn?)");
                     feilmelding = feilmelding.replace("on line", "på linje");
-
-                    resultatFelt.textContent = feilmelding;
-                    resultatFelt.className = 'error-msg';
+                    // Tøm og vis berre feilmeldinga
+                    while (resultatFelt.firstChild) resultatFelt.removeChild(resultatFelt.firstChild);
+                    feilSpan.appendChild(document.createTextNode(feilmelding));
                 }
+                resultatFelt.appendChild(feilSpan);
             }
             
             // Autoskroll heilt til slutt i tilfelle det kom ei lang feilmelding
