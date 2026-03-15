@@ -4,6 +4,7 @@ module.exports = {
     "./*.html",
     "./del1/**/*.html",
     "./del2/**/*.html",
+    "../index.html",
   ],
   theme: {
     extend: {},
